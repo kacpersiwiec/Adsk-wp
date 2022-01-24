@@ -180,7 +180,5 @@ FLUSH PRIVILEGES;
 
 ### ScreenShot 
 
-21.01.2022 niestety nie mam możliwości utworzenia instancji w AWS
-
 ![Screen](https://user-images.githubusercontent.com/56737374/150852385-e768b592-a162-4812-a076-277eeeca9e43.png)
 ![Sceen_WordPress](https://user-images.githubusercontent.com/56737374/150852697-85098236-f54d-486b-be1f-d8754fad81e6.JPG)
