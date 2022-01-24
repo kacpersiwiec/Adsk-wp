@@ -1,0 +1,80 @@
+---
+- hosts: blog
+  become: yes
+  vars:
+    WP_URL: https://pl.wordpress.org/latest-pl_PL.tar.gz
+    EPEL_REPO_URL: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    REMI_REPO_URL: https://rpms.remirepo.net/enterprise/remi-release-7.rpm
+    DB_NAME: blog
+    DB_USER: blog
+    DB_PW: blog!
+  tasks:
+    - name: "Lets create Hello world file"
+      file:
+        path: ~/hello_world.txt
+        state: touch
+    - name: "Install apche server"
+      yum:
+        name: httpd
+        state: present
+    - name: "put apache cfg into etc"
+      copy:
+        src: files/httpd-vhost.conf
+        dest: /etc/httpd/conf.d/blog.conf
+    - name: "Extract WP installation"
+      unarchive:
+        src: "{{ WP_URL }}"
+        dest: /var/www
+        remote_src: yes
+    ### PHP RELATED
+    - name: install epel repo
+      yum:
+        name: "{{ EPEL_REPO_URL }}"
+        state: present
+    - name: install php repo
+      yum:
+        name: "{{ REMI_REPO_URL }}"
+        state: present
+    - name: install php packages
+      yum:
+        name: 
+          - php80
+          - php80-php
+          - php80-php-mysqlnd
+          - php80-php-pecl-mysql
+        state: present
+    - name: "add mariadb repo cfg to yum conf"
+      copy:
+        src: files/mariadb.repo
+        dest: /etc/yum.repos.d/Mariadb.repo
+    - name: "install mariadb server"
+      yum:
+        name: 
+          - MariaDB-server
+          - MariaDB-client
+          - MySQL-python
+    - name: "start mariadb server"
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+    - name: "create db"
+      mysql_db:
+        name: "{{ DB_NAME }}"
+        state: present
+    - name: "create user an grant privileges"
+      mysql_user:
+        name: "{{ DB_USER }}"
+        password: "{{ DB_PW }}"
+        priv: "{{ DB_NAME }}.*:ALL"
+        state: present
+    - name: "put wp config"
+      template:
+        src: files/wp-config.php
+        dest: /var/www/wordpress/wp-config.php
+    ## RESTART APACHE
+    - name: "restart apache server"
+      service:
+        name: httpd
+        state: restarted
+        enabled: yes
